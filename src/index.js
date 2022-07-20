@@ -14,19 +14,23 @@
 const someHost = `https://api.notion.com/v1/databases/00732120edcc4cda8582388699d541b6/query`;
 const url = someHost; 
 
-async function gatherResponse(response) {
 
-  const { headers } = response;
-  const contentType = headers.get('content-type') || '';
-  if (contentType.includes('application/json')) {
-    return JSON.stringify(await response.json());
-  } else if (contentType.includes('application/text')) {
-    return response.text();
-  } else if (contentType.includes('text/html')) {
-    return response.text();
-  } else {
-    return response.text();
-  }
+async function parsePages(pages) {
+    let filtered = [];
+    pages.forEach(async page => {
+        let obj = {id: page.id};
+        filtered.push(obj)
+    })
+
+    return filtered;
+
+}
+
+
+async function gatherResponse(response) {
+    const db_json = await response.json();
+    const pages = await parsePages(db_json.results);
+    return JSON.stringify(pages);
 }
 
 async function handleRequest() {
@@ -40,9 +44,8 @@ async function handleRequest() {
       'Authorization': "Bearer " + token,
     },
   };
-    console.log(init.headers)
-  const response = await fetch(url, init);
-  const results = await gatherResponse(response);
+  const response = await fetch(url, init)
+  const results = await gatherResponse(response)
   return new Response(results, init);
 }
 
